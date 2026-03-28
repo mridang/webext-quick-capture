@@ -87,9 +87,7 @@ describe('copyImageToClipboard', () => {
   });
 
   it('should return error result on clipboard failure', async () => {
-    executeScriptMock.mockRejectedValue(
-      new Error('Script injection failed'),
-    );
+    executeScriptMock.mockRejectedValue(new Error('Script injection failed'));
 
     const result = await copyImageToClipboard(1, 'data:image/png;base64,mock');
 

@@ -32,4 +32,5 @@ If you have suggestions for how this extension could be improved or want to repo
 Apache License 2.0 © 2025 Mridang Agarwalla
 
 ## Sound Effect
+
 To enable the camera shutter sound effect, please download a sound file named `camera-shutter-click-03.mp3` and place it in the `assets/` directory at the root of the project.
