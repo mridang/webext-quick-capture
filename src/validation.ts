@@ -1,65 +1,43 @@
-import { MAX_TEXT_LENGTH, MIN_TEXT_LENGTH } from './constants.js';
-import type { Result } from './types.js';
+import type { Tab, Result } from './types.js';
 
-export const validateSelectionText = (
-  text: string | undefined,
-): Result<string> => {
-  if (typeof text !== 'string') {
+export const validateTab = (
+  tab: Tab | undefined,
+): Result<Tab & { id: number }> => {
+  if (!tab) {
     return {
       success: false,
       error: {
-        type: 'INVALID_SELECTION',
-        message: 'Selection text must be a string',
+        type: 'CAPTURE_FAILED',
+        message: 'No active tab found',
       },
     };
   }
 
-  if (text.length < MIN_TEXT_LENGTH) {
+  if (tab.id === undefined) {
     return {
       success: false,
       error: {
-        type: 'INVALID_SELECTION',
-        message: `Selection text must be at least ${MIN_TEXT_LENGTH} character`,
+        type: 'CAPTURE_FAILED',
+        message: 'Tab ID is undefined',
       },
     };
   }
 
-  if (text.length > MAX_TEXT_LENGTH) {
-    return {
-      success: false,
-      error: {
-        type: 'INVALID_SELECTION',
-        message: `Selection text cannot exceed ${MAX_TEXT_LENGTH} characters`,
-      },
-    };
-  }
-
-  return { success: true, value: text };
+  return { success: true, value: tab as Tab & { id: number } };
 };
 
-export const validateFilename = (filename: string): Result<string> => {
-  // eslint-disable-next-line no-control-regex
-  const invalidChars = /[<>:"/\\|?*\x00-\x1F]/g;
-
-  if (invalidChars.test(filename)) {
+export const validateDataUrl = (
+  dataUrl: string | undefined,
+): Result<string> => {
+  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
     return {
       success: false,
       error: {
-        type: 'INVALID_SELECTION',
-        message: 'Filename contains invalid characters',
+        type: 'CAPTURE_FAILED',
+        message: 'Invalid data URL',
       },
     };
   }
 
-  if (filename.length === 0 || filename.length > 255) {
-    return {
-      success: false,
-      error: {
-        type: 'INVALID_SELECTION',
-        message: 'Filename length must be between 1 and 255 characters',
-      },
-    };
-  }
-
-  return { success: true, value: filename };
+  return { success: true, value: dataUrl };
 };

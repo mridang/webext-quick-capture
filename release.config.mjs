@@ -38,5 +38,5 @@ export default {
       },
     ],
   ],
-  repositoryUrl: 'git+https://github.com/mridang/webext-save-selection.git',
+  repositoryUrl: 'git+https://github.com/mridang/webext-quick-capture.git',
 };

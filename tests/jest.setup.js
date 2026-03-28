@@ -5,6 +5,11 @@ const mockChrome = {
     onInstalled: {
       addListener: jest.fn(),
     },
+    getContexts: jest.fn(),
+    sendMessage: jest.fn(),
+    ContextType: {
+      OFFSCREEN_DOCUMENT: 'OFFSCREEN_DOCUMENT',
+    },
   },
   contextMenus: {
     create: jest.fn(),
@@ -14,6 +19,19 @@ const mockChrome = {
   },
   downloads: {
     download: jest.fn(),
+  },
+  tabs: {
+    captureVisibleTab: jest.fn(),
+  },
+  scripting: {
+    executeScript: jest.fn(),
+  },
+  offscreen: {
+    createDocument: jest.fn(),
+    hasDocument: jest.fn(),
+    Reason: {
+      AUDIO_PLAYBACK: 'AUDIO_PLAYBACK',
+    },
   },
 };
 

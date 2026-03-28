@@ -1,13 +1,34 @@
 {
   "$schema": "https://json.schemastore.org/chrome-manifest.json",
   "manifest_version": 3,
-  "name": "Text Saver",
-  "short_name": "TextSaver",
+  "name": "Screenshot Capturer",
+  "short_name": "ScreenshotCapturer",
   "version": "1.0.0",
-  "description": "Save selected text to two files via context menu",
+  "description": "Capture a screenshot and save to clipboard",
   "author": "Mridang Agarwalla <mridang.agarwalla@gmail.com>",
-  "homepage_url": "https://github.com/mridang/webext-save-selection",
-  "permissions": ["contextMenus", "downloads"],
+  "homepage_url": "https://github.com/mridang/webext-quick-capture",
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "scripting",
+    "clipboardWrite",
+    "offscreen"
+  ],
+  "offscreen": {
+    "reasons": ["AUDIO_PLAYBACK"],
+    "justification": "To play a sound when a screenshot is taken.",
+    "path": "offscreen.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/camera-shutter-click-03.mp3",
+        "offscreen.html",
+        "offscreen.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "background": {
     "service_worker": "background.js"
   },

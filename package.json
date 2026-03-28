@@ -1,13 +1,13 @@
 {
-  "name": "text-saver-extension",
+  "name": "screenshot-capturer-extension",
   "version": "1.0.0",
   "type": "module",
-  "description": "Chrome extension to save selected text to a file",
+  "description": "Chrome extension to capture a screenshot and save to clipboard",
   "keywords": [
     "chrome-extension",
-    "text-saver",
+    "screenshot",
     "context-menu",
-    "download"
+    "clipboard"
   ],
   "author": {
     "name": "Mridang Agarwalla",
@@ -21,10 +21,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mridang/webext-save-selection.git"
+    "url": "git+https://github.com/mridang/webext-quick-capture.git"
   },
-  "homepage": "https://github.com/mridang/webext-save-selection",
-  "bugs": "https://github.com/mridang/webext-save-selection/issues",
+  "homepage": "https://github.com/mridang/webext-quick-capture",
+  "bugs": "https://github.com/mridang/webext-quick-capture/issues",
   "files": [
     "dist"
   ],

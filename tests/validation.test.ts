@@ -1,92 +1,79 @@
 import { describe, it, expect } from '@jest/globals';
-import { validateSelectionText, validateFilename } from '../src/validation.js';
+import { validateTab, validateDataUrl } from '../src/validation.js';
+import type { Tab } from '../src/types.js';
 
-describe('validateSelectionText', () => {
-  it('should accept valid text', () => {
-    const result = validateSelectionText('Hello World');
+const baseTab: Tab = {
+  id: 1,
+  index: 0,
+  windowId: 1,
+  highlighted: true,
+  active: true,
+  pinned: false,
+  discarded: false,
+  incognito: false,
+  autoDiscardable: true,
+};
+
+describe('validateTab', () => {
+  it('should accept valid tab with id', () => {
+    const result = validateTab(baseTab);
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.value).toBe('Hello World');
+      expect(result.value.id).toBe(1);
     }
   });
 
-  it('should reject undefined text', () => {
-    const result = validateSelectionText(undefined);
+  it('should reject undefined tab', () => {
+    const result = validateTab(undefined);
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.type).toBe('INVALID_SELECTION');
+      expect(result.error.type).toBe('CAPTURE_FAILED');
     }
   });
 
-  it('should reject empty text', () => {
-    const result = validateSelectionText('');
+  it('should reject tab without id', () => {
+    const tabWithoutId: Tab = { ...baseTab, id: undefined };
+    const result = validateTab(tabWithoutId);
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.type).toBe('INVALID_SELECTION');
+      expect(result.error.type).toBe('CAPTURE_FAILED');
     }
-  });
-
-  it('should reject text exceeding maximum length', () => {
-    const longText = 'a'.repeat(1_000_001);
-    const result = validateSelectionText(longText);
-
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.type).toBe('INVALID_SELECTION');
-    }
-  });
-
-  it('should accept text at maximum length', () => {
-    const maxText = 'a'.repeat(1_000_000);
-    const result = validateSelectionText(maxText);
-
-    expect(result.success).toBe(true);
   });
 });
 
-describe('validateFilename', () => {
-  it('should accept valid filename', () => {
-    const result = validateFilename('test.txt');
+describe('validateDataUrl', () => {
+  it('should accept valid data URL', () => {
+    const result = validateDataUrl('data:image/png;base64,abc');
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.value).toBe('test.txt');
+      expect(result.value).toBe('data:image/png;base64,abc');
     }
   });
 
-  it('should reject filename with invalid characters', () => {
-    const invalidFilenames = [
-      'test<.txt',
-      'test>.txt',
-      'test".txt',
-      'test/.txt',
-      'test\\.txt',
-      'test|.txt',
-      'test?.txt',
-      'test*.txt',
-    ];
-
-    invalidFilenames.forEach((filename) => {
-      const result = validateFilename(filename);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.type).toBe('INVALID_SELECTION');
-      }
-    });
-  });
-
-  it('should reject empty filename', () => {
-    const result = validateFilename('');
+  it('should reject undefined', () => {
+    const result = validateDataUrl(undefined);
 
     expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.type).toBe('CAPTURE_FAILED');
+    }
   });
 
-  it('should reject filename exceeding 255 characters', () => {
-    const longFilename = 'a'.repeat(256);
-    const result = validateFilename(longFilename);
+  it('should reject non-data URL string', () => {
+    const result = validateDataUrl('https://example.com');
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.type).toBe('CAPTURE_FAILED');
+    }
+  });
+
+  it('should reject empty string', () => {
+    const result = validateDataUrl('');
 
     expect(result.success).toBe(false);
   });

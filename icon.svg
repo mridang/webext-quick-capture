@@ -1,23 +1,4 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
-	 viewBox="0 0 512 512" xml:space="preserve">
-<polygon style="fill:#F7C02D;" points="453.527,0 256,0 235.085,256.832 256,512 453.527,512 "/>
-<polygon style="fill:#FBE27B;" points="58.472,0 58.472,418.535 121.208,447.216 151.938,512 256,512 256,0 "/>
-<g>
-	<polygon style="fill:#F39624;" points="407.043,187.259 256,187.259 235.085,202.933 256,218.606 407.043,218.606 	"/>
-	<polygon style="fill:#F39624;" points="407.043,241.159 256,241.159 235.085,256.833 256,272.506 407.043,272.506 	"/>
-	<polygon style="fill:#F39624;" points="407.043,295.06 256,295.06 235.085,310.734 256,326.407 407.043,326.407 	"/>
-	<polygon style="fill:#F39624;" points="407.043,348.96 256,348.96 235.085,364.634 256,380.307 407.043,380.307 	"/>
-</g>
-<g>
-	<rect x="104.96" y="187.256" style="fill:#F7C02D;" width="151.04" height="31.347"/>
-	<rect x="104.96" y="295.058" style="fill:#F7C02D;" width="151.04" height="31.347"/>
-	<rect x="104.96" y="348.965" style="fill:#F7C02D;" width="151.04" height="31.347"/>
-	<rect x="104.96" y="241.162" style="fill:#F7C02D;" width="151.04" height="31.347"/>
-</g>
-<polygon style="fill:#E43138;" points="271.673,86.795 304.781,119.903 326.945,97.738 256,26.792 244.506,64.261 256,165.203
-	271.673,165.203 "/>
-<polygon style="fill:#F25F67;" points="185.055,97.738 207.219,119.903 240.327,86.795 240.327,165.203 256,165.203 256,26.792 "/>
-<polygon style="fill:#F7C02D;" points="151.938,512 151.938,418.535 58.472,418.535 "/>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera-fill" viewBox="0 0 16 16">
+  <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+  <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm7 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
 </svg>

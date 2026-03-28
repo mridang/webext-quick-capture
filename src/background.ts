@@ -3,129 +3,177 @@ import type { ContextMenuInfo, Tab, Result } from './types.js';
 import {
   MENU_ID,
   MENU_TITLE,
-  FILE_PREFIX,
-  FILE_EXTENSION,
-  MIME_TYPE,
+  SOUND_PATH,
+  OFFSCREEN_PATH,
+  CAPTURE_FORMAT,
 } from './constants.js';
-import { validateSelectionText, validateFilename } from './validation.js';
+import { validateTab, validateDataUrl } from './validation.js';
+
+let creating: Promise<void> | null; // A global promise to avoid race conditions
 
 /**
- * Formats a Date into a filesystem-safe timestamp string by replacing
- * colons and periods with hyphens.
+ * Sets up an offscreen document if one doesn't already exist.
  *
- * @param date - The date to format
- * @returns ISO 8601 string with special chars replaced
+ * @param path - The path to the offscreen document HTML file.
  */
-export function formatTimestamp(date: Date): string {
-  return date.toISOString().replace(/[:.]/g, '-');
+export async function setupOffscreenDocument(path: string): Promise<void> {
+  const existingContexts = await chrome.runtime.getContexts({
+    contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+  });
+  const offscreenDocument = existingContexts.find((c) =>
+    c.documentUrl?.endsWith(path),
+  );
+
+  if (offscreenDocument) {
+    return;
+  }
+
+  if (creating) {
+    await creating;
+  } else {
+    creating = chrome.offscreen.createDocument({
+      url: path,
+      reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK],
+      justification: 'To play a sound when a screenshot is taken',
+    });
+    await creating;
+    creating = null;
+  }
 }
 
 /**
- * Creates a validated filename by combining prefix, timestamp, and
- * extension, then checking for filesystem safety.
+ * Plays a sound using an offscreen document.
  *
- * @param prefix - Filename prefix (e.g., "selection-")
- * @param timestamp - Formatted timestamp string
- * @returns Result with filename or validation error
+ * @param src - The path to the audio file.
  */
-export function createFilename(
-  prefix: string,
-  timestamp: string,
-): Result<string> {
-  const filename = `${prefix}${timestamp}${FILE_EXTENSION}`;
-  return validateFilename(filename);
+export async function playSound(src: string): Promise<void> {
+  await setupOffscreenDocument(OFFSCREEN_PATH);
+  chrome.runtime.sendMessage({ type: 'PLAY_SOUND', src });
 }
 
 /**
- * Initiates a download via Chrome downloads API using data URL.
- * Service workers don't support URL.createObjectURL, so we convert
- * the blob to a data URL via FileReader.
+ * Captures the visible tab as a PNG screenshot.
  *
- * @param text - Text content to download
- * @param filename - Name for the downloaded file
- * @returns Result with download ID or error details
+ * @param windowId - The window ID to capture.
+ * @returns Result with the data URL or capture error.
  */
-export async function downloadFile(
-  text: string,
-  filename: string,
-): Promise<Result<number>> {
+export async function captureScreenshot(
+  windowId: number,
+): Promise<Result<string>> {
   try {
-    const blob = new Blob([text], { type: MIME_TYPE });
-    const reader = new FileReader();
-
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
+    const dataUrl = await chrome.tabs.captureVisibleTab(windowId, {
+      format: CAPTURE_FORMAT,
     });
-
-    const downloadId = await chrome.downloads.download({
-      url: dataUrl,
-      filename,
-      saveAs: false,
-    });
-
-    return { success: true, value: downloadId };
+    return validateDataUrl(dataUrl);
   } catch (error) {
     return {
       success: false,
       error: {
-        type: 'DOWNLOAD_FAILED',
+        type: 'CAPTURE_FAILED',
         message:
-          error instanceof Error ? error.message : 'Unknown download error',
+          error instanceof Error ? error.message : 'Unknown capture error',
       },
     };
   }
 }
 
 /**
- * Handles context menu click events. Validates selected text, creates
- * a timestamped file, and downloads it. Logs errors but does not throw.
+ * Injects and executes a script in the active tab to copy the image
+ * data from a data URL to the clipboard.
  *
- * @param info - Context menu click event data
- * @param _tab - Tab where click occurred (unused)
+ * @param tabId - The ID of the active tab.
+ * @param dataUrl - The data URL of the image to copy.
+ * @returns Result indicating success or clipboard error.
+ */
+export async function copyImageToClipboard(
+  tabId: number,
+  dataUrl: string,
+): Promise<Result<void>> {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: async (url: string) => {
+        try {
+          const response = await fetch(url);
+          const blob = await response.blob();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (navigator as any).clipboard.write([
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            new (globalThis as any).ClipboardItem({
+              [blob.type]: blob,
+            }),
+          ]);
+        } catch (err) {
+          console.error('Failed to copy image: ', err);
+          throw err;
+        }
+      },
+      args: [dataUrl],
+    });
+    return { success: true, value: undefined };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        type: 'CLIPBOARD_FAILED',
+        message:
+          error instanceof Error ? error.message : 'Unknown clipboard error',
+      },
+    };
+  }
+}
+
+/**
+ * Handles context menu click events. Captures the visible tab as a screenshot
+ * and copies it to the clipboard.
+ *
+ * @param info - Context menu click event data.
+ * @param tab - The tab where the click occurred.
  */
 export async function handleContextMenuClick(
   info: ContextMenuInfo,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _tab?: Tab,
+  tab?: Tab,
 ): Promise<void> {
   if (info.menuItemId !== MENU_ID) {
     return;
   }
 
-  const validationResult = validateSelectionText(info.selectionText);
-  if (!validationResult.success) {
-    console.error('Validation failed:', validationResult.error.message);
+  const tabResult = validateTab(tab);
+  if (!tabResult.success) {
+    console.error('Validation failed:', tabResult.error.message);
     return;
   }
 
-  const text = validationResult.value;
-  const timestamp = formatTimestamp(new Date());
-  const filenameResult = createFilename(FILE_PREFIX, timestamp);
+  const validTab = tabResult.value;
+  const captureResult = await captureScreenshot(validTab.windowId);
 
-  if (!filenameResult.success) {
-    console.error('Filename creation failed');
+  if (!captureResult.success) {
+    console.error('Capture failed:', captureResult.error.message);
     return;
   }
 
-  const downloadResult = await downloadFile(text, filenameResult.value);
+  const clipboardResult = await copyImageToClipboard(
+    validTab.id,
+    captureResult.value,
+  );
 
-  if (!downloadResult.success) {
-    console.error('Download failed:', downloadResult.error.message);
+  if (!clipboardResult.success) {
+    console.error('Clipboard failed:', clipboardResult.error.message);
   }
+
+  await playSound(SOUND_PATH);
 }
 
 /**
  * Initializes the extension's context menu. Creates a menu item that
- * appears when text is selected. Logs errors without throwing.
+ * appears for any page. Logs errors without throwing.
  */
 export function initializeContextMenu(): void {
   try {
     chrome.contextMenus.create({
       id: MENU_ID,
       title: MENU_TITLE,
-      contexts: ['selection'],
+      contexts: ['page'],
     });
   } catch (error) {
     console.error(

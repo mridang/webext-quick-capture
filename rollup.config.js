@@ -41,7 +41,7 @@ export default {
   output: {
     file: 'dist/background.js',
     format: 'iife',
-    name: 'TextSaverExtension',
+    name: 'ScreenshotCapturerExtension',
     sourcemap: true,
   },
   plugins: [
@@ -62,7 +62,15 @@ export default {
     }),
     convertSvgPlugin,
     copy({
-      targets: [{ src: 'manifest.json', dest: 'dist' }],
+      targets: [
+        { src: 'manifest.json', dest: 'dist' },
+        { src: 'src/offscreen.html', dest: 'dist' },
+        { src: 'src/offscreen.js', dest: 'dist' },
+        {
+          src: 'assets/camera-shutter-click-03.mp3',
+          dest: 'dist/assets',
+        },
+      ],
     }),
     zipPlugin(),
   ],
