@@ -206,7 +206,7 @@ describe('initializeContextMenu', () => {
     expect(chrome.contextMenus.create).toHaveBeenCalledWith({
       id: 'capture-screenshot',
       title: 'Capture screenshot',
-      contexts: ['page'],
+      contexts: ['all'],
     });
   });
 

@@ -15,9 +15,7 @@
     "offscreen"
   ],
   "offscreen": {
-    "reasons": [
-      "AUDIO_PLAYBACK"
-    ],
+    "reasons": ["AUDIO_PLAYBACK"],
     "justification": "To play a sound when a screenshot is taken.",
     "path": "offscreen.html"
   },
@@ -28,9 +26,7 @@
         "offscreen.html",
         "offscreen.js"
       ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "matches": ["<all_urls>"]
     }
   ],
   "background": {

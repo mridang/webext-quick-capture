@@ -173,7 +173,7 @@ export function initializeContextMenu(): void {
     chrome.contextMenus.create({
       id: MENU_ID,
       title: MENU_TITLE,
-      contexts: ['page'],
+      contexts: ['all'],
     });
   } catch (error) {
     console.error(
