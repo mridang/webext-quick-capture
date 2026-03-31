@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/chrome-manifest.json",
   "manifest_version": 3,
   "name": "Screenshot Capturer",
-  "short_name": "ScreenshotCapturer",
+  "short_name": "Screenshot",
   "version": "1.0.1",
   "description": "Capture a screenshot and save to clipboard",
   "author": "Mridang Agarwalla <mridang.agarwalla@gmail.com>",
@@ -14,13 +14,6 @@
     "clipboardWrite",
     "offscreen"
   ],
-  "offscreen": {
-    "reasons": [
-      "AUDIO_PLAYBACK"
-    ],
-    "justification": "To play a sound when a screenshot is taken.",
-    "path": "offscreen.html"
-  },
   "web_accessible_resources": [
     {
       "resources": [
