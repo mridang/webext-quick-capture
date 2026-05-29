@@ -3,7 +3,7 @@
   "manifest_version": 3,
   "name": "Screenshot Capturer",
   "short_name": "Screenshot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Capture a screenshot and save to clipboard",
   "author": "Mridang Agarwalla <mridang.agarwalla@gmail.com>",
   "homepage_url": "https://github.com/mridang/webext-quick-capture",
@@ -21,7 +21,9 @@
         "offscreen.html",
         "offscreen.js"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "background": {
