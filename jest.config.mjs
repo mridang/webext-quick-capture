@@ -21,8 +21,15 @@ export default {
     'json',
     'node',
   ],
-  testPathIgnorePatterns: ['/node_modules/', '/frontend/', '/dist/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/frontend/',
+    '/dist/',
+    '/packages/',
+  ],
   resetModules: false,
+  globalSetup: './test/setup.ts',
+  globalTeardown: './test/teardown.ts',
   collectCoverage: true,
   coverageDirectory: './.out',
   collectCoverageFrom: ['src/**/*.{ts,tsx,js,jsx}', '!src/**/*.d.ts'],
@@ -33,7 +40,6 @@ export default {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  setupFilesAfterEnv: ['<rootDir>/tests/jest.setup.js'],
   reporters: [
     'default',
     [

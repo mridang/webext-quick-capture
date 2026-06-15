@@ -1,12 +1,91 @@
 /* global chrome */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import {
+
+const mockChrome = {
+  runtime: {
+    onInstalled: {
+      addListener: jest.fn(),
+    },
+    getContexts: jest.fn(),
+    sendMessage: jest.fn(),
+    ContextType: {
+      OFFSCREEN_DOCUMENT: 'OFFSCREEN_DOCUMENT',
+    },
+  },
+  contextMenus: {
+    create: jest.fn(),
+    onClicked: {
+      addListener: jest.fn(),
+    },
+  },
+  downloads: {
+    download: jest.fn(),
+  },
+  tabs: {
+    captureVisibleTab: jest.fn(),
+  },
+  scripting: {
+    executeScript: jest.fn(),
+  },
+  offscreen: {
+    createDocument: jest.fn(),
+    hasDocument: jest.fn(),
+    Reason: {
+      AUDIO_PLAYBACK: 'AUDIO_PLAYBACK',
+    },
+  },
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).chrome = mockChrome;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).Blob = class Blob {
+  size: number;
+  type: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(parts: any[], options?: { type?: string }) {
+    this.size = parts.reduce((acc: number, part: unknown) => {
+      if (typeof part === 'string') {
+        return acc + new TextEncoder().encode(part).length;
+      }
+      return acc;
+    }, 0);
+    this.type = options?.type || '';
+  }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).FileReader = class FileReader {
+  onloadend: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  result: string | null = null;
+
+  readAsDataURL() {
+    setTimeout(() => {
+      this.result = 'data:text/plain;base64,dGVzdA==';
+      if (this.onloadend) {
+        this.onloadend();
+      }
+    }, 0);
+  }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).URL = {
+  createObjectURL: jest.fn(() => 'blob:test'),
+  revokeObjectURL: jest.fn(),
+};
+
+const {
   captureScreenshot,
   copyImageToClipboard,
   handleContextMenuClick,
   initializeContextMenu,
-} from '../src/background.js';
-import type { ContextMenuInfo, Tab } from '../src/types.js';
+} = await import('../src/background.js');
+type BackgroundTypes = typeof import('../src/types.js');
+type ContextMenuInfo = BackgroundTypes['ContextMenuInfo'];
+type Tab = BackgroundTypes['Tab'];
 
 type CaptureVisibleTabPromise = (
   windowId: number,
