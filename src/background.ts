@@ -16,7 +16,7 @@ let creating: Promise<void> | null; // A global promise to avoid race conditions
  *
  * @param path - The path to the offscreen document HTML file.
  */
-export async function setupOffscreenDocument(path: string): Promise<void> {
+async function setupOffscreenDocument(path: string): Promise<void> {
   const existingContexts = await chrome.runtime.getContexts({
     contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
   });
@@ -46,9 +46,9 @@ export async function setupOffscreenDocument(path: string): Promise<void> {
  *
  * @param src - The path to the audio file.
  */
-export async function playSound(src: string): Promise<void> {
+async function playSound(src: string): Promise<void> {
   await setupOffscreenDocument(OFFSCREEN_PATH);
-  chrome.runtime.sendMessage({ type: 'PLAY_SOUND', src });
+  void chrome.runtime.sendMessage({ type: 'PLAY_SOUND', src });
 }
 
 /**
