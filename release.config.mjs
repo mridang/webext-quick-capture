@@ -10,9 +10,9 @@ export default {
       '@semantic-release/exec',
       {
         prepareCmd: [
-          'jq --arg v "${nextRelease.version}" \'.version = $v\' package.json > package.json.tmp',
+          'sed -E \'s/^(  "version": ")[^"]*"/\\1${nextRelease.version}"/\' package.json > package.json.tmp',
           'mv package.json.tmp package.json',
-          'jq --arg v "${nextRelease.version}" \'.version = $v\' manifest.json > manifest.json.tmp',
+          'sed -E \'s/^(  "version": ")[^"]*"/\\1${nextRelease.version}"/\' manifest.json > manifest.json.tmp',
           'mv manifest.json.tmp manifest.json',
           'npm run build',
         ].join(' && '),
