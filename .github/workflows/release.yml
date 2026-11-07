@@ -37,9 +37,18 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Authenticate to Google Cloud
+        id: google-auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/963670922810/locations/global/workloadIdentityPools/github/providers/github-actions
+          service_account: webstore-publisher@other-514020.iam.gserviceaccount.com
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+
       - name: Run semantic-release
         uses: mridang/action-semantic-release@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
