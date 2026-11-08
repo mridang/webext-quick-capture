@@ -4,10 +4,6 @@ import terser from '@rollup/plugin-terser';
 import copy from 'rollup-plugin-copy';
 import { Resvg } from '@resvg/resvg-js';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-
-const execAsync = promisify(exec);
 
 // noinspection JSUnusedGlobalSymbols
 const convertSvgPlugin = {
@@ -25,15 +21,6 @@ const convertSvgPlugin = {
     }
   },
 };
-
-// noinspection JSUnusedGlobalSymbols
-const zipPlugin = () => ({
-  name: 'zip-plugin',
-  async writeBundle() {
-    await execAsync("cd dist && zip -r extension.zip . -x '*.zip'");
-    console.log('Created dist/extension.zip');
-  },
-});
 
 // noinspection JSUnusedGlobalSymbols
 export default {
@@ -72,6 +59,5 @@ export default {
         },
       ],
     }),
-    zipPlugin(),
   ],
 };

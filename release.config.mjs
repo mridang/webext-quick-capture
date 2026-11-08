@@ -1,6 +1,3 @@
-const item =
-  'publishers/674e492a-2721-474b-b790-20183608bb0b/items/jhjijkkakjbeialbdfidimakcckichhn';
-
 // noinspection JSUnusedGlobalSymbols
 export default {
   plugins: [
@@ -9,34 +6,22 @@ export default {
     [
       '@semantic-release/exec',
       {
-        prepareCmd: [
-          'sed -E \'s/^(  "version": ")[^"]*"/\\1${nextRelease.version}"/\' package.json > package.json.tmp',
-          'mv package.json.tmp package.json',
-          'sed -E \'s/^(  "version": ")[^"]*"/\\1${nextRelease.version}"/\' manifest.json > manifest.json.tmp',
-          'mv manifest.json.tmp manifest.json',
-          'npm run build',
-        ].join(' && '),
+        prepareCmd: 'npm run build',
+      },
+    ],
+    [
+      '@mridang/semantic-release-crx',
+      {
+        publisherId: '674e492a-2721-474b-b790-20183608bb0b',
+        extensionId: 'jhjijkkakjbeialbdfidimakcckichhn',
+        asset: 'dist/extension.zip',
+        additionalManifests: ['manifest.json', 'package.json'],
       },
     ],
     [
       '@semantic-release/github',
       {
         assets: ['dist/extension.zip'],
-      },
-    ],
-    [
-      '@semantic-release/exec',
-      {
-        publishCmd: [
-          'set -eu',
-          'api=https://chromewebstore.googleapis.com',
-          `item=${item}`,
-          'auth="Authorization: Bearer $CHROME_ACCESS_TOKEN"',
-          'state=$(curl -sS --fail-with-body -X POST -H "$auth" -T dist/extension.zip "$api/upload/v2/$item:upload" | jq -r .uploadState)',
-          'for n in $(seq 24); do [ "$state" = IN_PROGRESS ] || break; sleep 5; state=$(curl -sS --fail-with-body -H "$auth" "$api/v2/$item:fetchStatus" | jq -r .lastAsyncUploadState); done',
-          '[ "$state" = SUCCEEDED ] || { echo "Web Store upload ended in state $state" >&2; exit 1; }',
-          'curl -sS --fail-with-body -X POST -H "$auth" "$api/v2/$item:publish"',
-        ].join('\n'),
       },
     ],
     [

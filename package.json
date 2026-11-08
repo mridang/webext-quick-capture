@@ -46,6 +46,7 @@
     "@eslint/compat": "^2.1.0",
     "@jest/globals": "^30.2.0",
     "@mridang/eslint-defaults": "^1.6.3",
+    "@mridang/semantic-release-crx": "^1.0.0",
     "@playwright/test": "^1.57.0",
     "@resvg/resvg-js": "^2.6.2",
     "@rollup/plugin-node-resolve": "^15.3.0",
