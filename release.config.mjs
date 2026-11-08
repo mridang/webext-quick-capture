@@ -16,6 +16,7 @@ export default {
         extensionId: 'jhjijkkakjbeialbdfidimakcckichhn',
         asset: 'dist/extension.zip',
         additionalManifests: ['manifest.json', 'package.json'],
+        cancelPendingSubmission: true,
       },
     ],
     [
