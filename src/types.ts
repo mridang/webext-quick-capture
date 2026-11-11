@@ -1,4 +1,6 @@
-/* global chrome */
+/**
+ * @file Shared types for the background worker, including the extension's result and error shapes.
+ */
 
 export type ContextMenuInfo = chrome.contextMenus.OnClickData;
 

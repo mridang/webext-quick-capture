@@ -1,4 +1,6 @@
-/* global chrome */
+/**
+ * @file Unit tests for the background worker screenshot, clipboard and context menu handlers.
+ */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 const mockChrome = {
@@ -36,46 +38,48 @@ const mockChrome = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).chrome = mockChrome;
+Object.assign(globalThis, { chrome: mockChrome });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).Blob = class Blob {
-  size: number;
-  type: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(parts: any[], options?: { type?: string }) {
-    this.size = parts.reduce((acc: number, part: unknown) => {
-      if (typeof part === 'string') {
-        return acc + new TextEncoder().encode(part).length;
-      }
-      return acc;
-    }, 0);
-    this.type = options?.type || '';
-  }
-};
+Object.assign(globalThis, {
+  Blob: class Blob {
+    size: number;
+    type: string;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).FileReader = class FileReader {
-  onloadend: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  result: string | null = null;
+    constructor(parts: unknown[], options?: { type?: string }) {
+      this.size = parts.reduce((acc: number, part: unknown) => {
+        if (typeof part === 'string') {
+          return acc + new TextEncoder().encode(part).length;
+        }
+        return acc;
+      }, 0);
+      this.type = options?.type || '';
+    }
+  },
+});
 
-  readAsDataURL() {
-    setTimeout(() => {
-      this.result = 'data:text/plain;base64,dGVzdA==';
-      if (this.onloadend) {
-        this.onloadend();
-      }
-    }, 0);
-  }
-};
+Object.assign(globalThis, {
+  FileReader: class FileReader {
+    onloadend: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    result: string | null = null;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).URL = {
-  createObjectURL: jest.fn(() => 'blob:test'),
-  revokeObjectURL: jest.fn(),
-};
+    readAsDataURL() {
+      setTimeout(() => {
+        this.result = 'data:text/plain;base64,dGVzdA==';
+        if (this.onloadend) {
+          this.onloadend();
+        }
+      }, 0);
+    }
+  },
+});
+
+Object.assign(globalThis, {
+  URL: {
+    createObjectURL: jest.fn(() => 'blob:test'),
+    revokeObjectURL: jest.fn(),
+  },
+});
 
 const {
   captureScreenshot,
@@ -238,7 +242,7 @@ describe('handleContextMenuClick', () => {
       pageUrl: 'https://example.com',
     };
 
-    await handleContextMenuClick(info, undefined);
+    await handleContextMenuClick(info);
 
     expect(chrome.tabs.captureVisibleTab).not.toHaveBeenCalled();
     expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
@@ -251,7 +255,8 @@ describe('handleContextMenuClick', () => {
       pageUrl: 'https://example.com',
     };
 
-    const tabWithoutId: Tab = { ...tab, id: undefined };
+    const tabWithoutId: Tab = { ...tab };
+    delete tabWithoutId.id;
 
     await handleContextMenuClick(info, tabWithoutId);
 

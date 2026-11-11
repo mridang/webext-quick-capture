@@ -1,4 +1,6 @@
-/* global chrome */
+/**
+ * @file Background service worker that captures the visible tab and copies the screenshot to the clipboard.
+ */
 import type { ContextMenuInfo, Tab, Result } from './types.js';
 import {
   MENU_ID,
@@ -9,22 +11,28 @@ import {
 } from './constants.js';
 import { validateTab, validateDataUrl } from './validation.js';
 
-let creating: Promise<void> | null; // A global promise to avoid race conditions
+/**
+ * A shared promise that stops concurrent calls from creating the offscreen document twice.
+ */
+let creating: Promise<void> | null;
 
 /**
  * Sets up an offscreen document if one doesn't already exist.
- *
  * @param path - The path to the offscreen document HTML file.
+ * @example
+ * ```ts
+ * await setupOffscreenDocument('offscreen.html');
+ * ```
  */
 async function setupOffscreenDocument(path: string): Promise<void> {
   const existingContexts = await chrome.runtime.getContexts({
     contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
   });
-  const offscreenDocument = existingContexts.find((c) =>
+  const hasOffscreenDocument = existingContexts.some((c) =>
     c.documentUrl?.endsWith(path),
   );
 
-  if (offscreenDocument) {
+  if (hasOffscreenDocument) {
     return;
   }
 
@@ -43,8 +51,11 @@ async function setupOffscreenDocument(path: string): Promise<void> {
 
 /**
  * Plays a sound using an offscreen document.
- *
  * @param src - The path to the audio file.
+ * @example
+ * ```ts
+ * await playSound('assets/camera-shutter-click-03.mp3');
+ * ```
  */
 async function playSound(src: string): Promise<void> {
   await setupOffscreenDocument(OFFSCREEN_PATH);
@@ -53,9 +64,15 @@ async function playSound(src: string): Promise<void> {
 
 /**
  * Captures the visible tab as a PNG screenshot.
- *
  * @param windowId - The window ID to capture.
  * @returns Result with the data URL or capture error.
+ * @example
+ * ```ts
+ * const result = await captureScreenshot(windowId);
+ * if (result.success) {
+ *   console.log(result.value);
+ * }
+ * ```
  */
 export async function captureScreenshot(
   windowId: number,
@@ -77,18 +94,34 @@ export async function captureScreenshot(
   }
 }
 
+/** The clipboard API of the page's navigator, which the Node typings omit. */
+type PageNavigator = typeof navigator & {
+  clipboard: { write(items: unknown[]): Promise<void> };
+};
+
+/** The page's `ClipboardItem` global, which the Node typings omit. */
+type PageGlobals = typeof globalThis & {
+  ClipboardItem: new (items: Record<string, Blob>) => unknown;
+};
+
 /**
  * Injects and executes a script in the active tab to copy the image
  * data from a data URL to the clipboard.
- *
  * @param tabId - The ID of the active tab.
- * @param dataUrl - The data URL of the image to copy.
+ * @param dataUrl - The image to copy, encoded as a data URL.
  * @returns Result indicating success or clipboard error.
+ * @example
+ * ```ts
+ * const result = await copyImageToClipboard(tabId, dataUrl);
+ * if (!result.success) {
+ *   console.error(result.error.message);
+ * }
+ * ```
  */
 export async function copyImageToClipboard(
   tabId: number,
   dataUrl: string,
-): Promise<Result<void>> {
+): Promise<Result<null>> {
   try {
     await chrome.scripting.executeScript({
       target: { tabId },
@@ -96,21 +129,20 @@ export async function copyImageToClipboard(
         try {
           const response = await fetch(url);
           const blob = await response.blob();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (navigator as any).clipboard.write([
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            new (globalThis as any).ClipboardItem({
+          const page = globalThis as PageGlobals;
+          await (navigator as PageNavigator).clipboard.write([
+            new page.ClipboardItem({
               [blob.type]: blob,
             }),
           ]);
-        } catch (err) {
-          console.error('Failed to copy image: ', err);
-          throw err;
+        } catch (error) {
+          console.error('Failed to copy image:', error);
+          throw error;
         }
       },
       args: [dataUrl],
     });
-    return { success: true, value: undefined };
+    return { success: true, value: null };
   } catch (error) {
     return {
       success: false,
@@ -126,9 +158,14 @@ export async function copyImageToClipboard(
 /**
  * Handles context menu click events. Captures the visible tab as a screenshot
  * and copies it to the clipboard.
- *
  * @param info - Context menu click event data.
  * @param tab - The tab where the click occurred.
+ * @example
+ * ```ts
+ * chrome.contextMenus.onClicked.addListener((info, tab) => {
+ *   void handleContextMenuClick(info, tab);
+ * });
+ * ```
  */
 export async function handleContextMenuClick(
   info: ContextMenuInfo,
@@ -167,6 +204,10 @@ export async function handleContextMenuClick(
 /**
  * Initializes the extension's context menu. Creates a menu item that
  * appears for any page. Logs errors without throwing.
+ * @example
+ * ```ts
+ * chrome.runtime.onInstalled.addListener(initializeContextMenu);
+ * ```
  */
 export function initializeContextMenu(): void {
   try {

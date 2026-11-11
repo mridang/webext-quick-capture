@@ -1,3 +1,7 @@
+/**
+ * @file Constants shared by the background worker, its offscreen document and the build.
+ */
+
 export const MENU_ID = 'capture-screenshot' as const;
 
 export const MENU_TITLE = 'Capture screenshot' as const;

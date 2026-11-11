@@ -1,3 +1,6 @@
+/**
+ * @file Validators that turn raw browser capture inputs into typed results.
+ */
 import type { Tab, Result } from './types.js';
 
 export const validateTab = (

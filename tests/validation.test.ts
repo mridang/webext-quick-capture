@@ -1,3 +1,6 @@
+/**
+ * @file Unit tests for the tab and data URL validators.
+ */
 import { describe, it, expect } from '@jest/globals';
 import { validateTab, validateDataUrl } from '../src/validation.js';
 import type { Tab } from '../src/types.js';
@@ -34,7 +37,8 @@ describe('validateTab', () => {
   });
 
   it('should reject tab without id', () => {
-    const tabWithoutId: Tab = { ...baseTab, id: undefined };
+    const tabWithoutId: Tab = { ...baseTab };
+    delete tabWithoutId.id;
     const result = validateTab(tabWithoutId);
 
     expect(result.success).toBe(false);
