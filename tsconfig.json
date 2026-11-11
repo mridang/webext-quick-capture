@@ -10,9 +10,11 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "outDir": "dist",
+    "rootDir": "./src",
     "typeRoots": ["./node_modules/@types", "./types"],
     "declaration": true,
-    "types": ["chrome", "jest", "node"]
+    "types": ["chrome", "jest", "node"],
+    "isolatedModules": true
   },
   "include": ["src/**/*", "types/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "dist", "test"]
