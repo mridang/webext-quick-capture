@@ -2,6 +2,7 @@
  * @file Unit tests for the background worker screenshot, clipboard and context menu handlers.
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import type { ContextMenuInfo, Tab } from '../src/types.js';
 
 const mockChrome = {
   runtime: {
@@ -87,9 +88,6 @@ const {
   handleContextMenuClick,
   initializeContextMenu,
 } = await import('../src/background.js');
-type BackgroundTypes = typeof import('../src/types.js');
-type ContextMenuInfo = BackgroundTypes['ContextMenuInfo'];
-type Tab = BackgroundTypes['Tab'];
 
 type CaptureVisibleTabPromise = (
   windowId: number,
@@ -102,8 +100,16 @@ type ContextMenusCreateFn = (
 ) => string | number;
 
 type ExecuteScriptPromise = (
-  injection: chrome.scripting.Injection,
+  injection: chrome.scripting.ScriptInjection<unknown[], unknown>,
 ) => Promise<chrome.scripting.InjectionResult[]>;
+
+type GetContextsPromise = (
+  filter: chrome.runtime.ContextFilter,
+) => Promise<chrome.runtime.ExtensionContext[]>;
+
+type CreateDocumentPromise = (
+  parameters: chrome.offscreen.CreateParameters,
+) => Promise<void>;
 
 const captureVisibleTabMock = chrome.tabs
   .captureVisibleTab as unknown as jest.MockedFunction<CaptureVisibleTabPromise>;
@@ -114,18 +120,15 @@ const contextMenusCreateMock = chrome.contextMenus
 const executeScriptMock = chrome.scripting
   .executeScript as unknown as jest.MockedFunction<ExecuteScriptPromise>;
 
-const getContextsMock = chrome.runtime.getContexts as jest.MockedFunction<
-  typeof chrome.runtime.getContexts
->;
+const getContextsMock = chrome.runtime
+  .getContexts as jest.MockedFunction<GetContextsPromise>;
 
 const sendMessageMock = chrome.runtime.sendMessage as jest.MockedFunction<
   typeof chrome.runtime.sendMessage
 >;
 
 const createDocumentMock = chrome.offscreen
-  .createDocument as jest.MockedFunction<
-  typeof chrome.offscreen.createDocument
->;
+  .createDocument as jest.MockedFunction<CreateDocumentPromise>;
 
 describe('captureScreenshot', () => {
   beforeEach(() => {
@@ -192,7 +195,7 @@ describe('handleContextMenuClick', () => {
     captureVisibleTabMock.mockResolvedValue('data:image/png;base64,mock-image');
     executeScriptMock.mockResolvedValue([]);
     getContextsMock.mockResolvedValue([]);
-    createDocumentMock.mockResolvedValue();
+    createDocumentMock.mockResolvedValue(undefined);
   });
 
   const tab: Tab = {
@@ -205,6 +208,8 @@ describe('handleContextMenuClick', () => {
     discarded: false,
     incognito: false,
     autoDiscardable: true,
+    selected: true,
+    groupId: -1,
   };
 
   it('should capture screenshot, play sound and copy to clipboard when correct menu item is clicked', async () => {

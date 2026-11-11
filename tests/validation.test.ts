@@ -15,6 +15,8 @@ const baseTab: Tab = {
   discarded: false,
   incognito: false,
   autoDiscardable: true,
+  selected: true,
+  groupId: -1,
 };
 
 describe('validateTab', () => {
