@@ -38,46 +38,48 @@ const mockChrome = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test replaces the browser chrome global with a mock
-(globalThis as any).chrome = mockChrome;
+Object.assign(globalThis, { chrome: mockChrome });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test replaces the browser Blob global with a stand-in
-(globalThis as any).Blob = class Blob {
-  size: number;
-  type: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Blob parts are untyped in the stand-in constructor
-  constructor(parts: any[], options?: { type?: string }) {
-    this.size = parts.reduce((acc: number, part: unknown) => {
-      if (typeof part === 'string') {
-        return acc + new TextEncoder().encode(part).length;
-      }
-      return acc;
-    }, 0);
-    this.type = options?.type || '';
-  }
-};
+Object.assign(globalThis, {
+  Blob: class Blob {
+    size: number;
+    type: string;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test replaces the browser FileReader global with a stand-in
-(globalThis as any).FileReader = class FileReader {
-  onloadend: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  result: string | null = null;
+    constructor(parts: unknown[], options?: { type?: string }) {
+      this.size = parts.reduce((acc: number, part: unknown) => {
+        if (typeof part === 'string') {
+          return acc + new TextEncoder().encode(part).length;
+        }
+        return acc;
+      }, 0);
+      this.type = options?.type || '';
+    }
+  },
+});
 
-  readAsDataURL() {
-    setTimeout(() => {
-      this.result = 'data:text/plain;base64,dGVzdA==';
-      if (this.onloadend) {
-        this.onloadend();
-      }
-    }, 0);
-  }
-};
+Object.assign(globalThis, {
+  FileReader: class FileReader {
+    onloadend: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    result: string | null = null;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test replaces the browser URL helpers with mocks
-(globalThis as any).URL = {
-  createObjectURL: jest.fn(() => 'blob:test'),
-  revokeObjectURL: jest.fn(),
-};
+    readAsDataURL() {
+      setTimeout(() => {
+        this.result = 'data:text/plain;base64,dGVzdA==';
+        if (this.onloadend) {
+          this.onloadend();
+        }
+      }, 0);
+    }
+  },
+});
+
+Object.assign(globalThis, {
+  URL: {
+    createObjectURL: jest.fn(() => 'blob:test'),
+    revokeObjectURL: jest.fn(),
+  },
+});
 
 const {
   captureScreenshot,
