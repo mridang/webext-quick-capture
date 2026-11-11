@@ -119,7 +119,7 @@ export async function copyImageToClipboard(
         try {
           const response = await fetch(url);
           const blob = await response.blob();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins -- navigator is a browser global in the injected page function.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- navigator is a browser global in the injected page function.
           await (navigator as any).clipboard.write([
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ClipboardItem is a page global missing from the Node typings.
             new (globalThis as any).ClipboardItem({
