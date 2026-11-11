@@ -94,6 +94,16 @@ export async function captureScreenshot(
   }
 }
 
+/** The clipboard API of the page's navigator, which the Node typings omit. */
+type PageNavigator = typeof navigator & {
+  clipboard: { write(items: unknown[]): Promise<void> };
+};
+
+/** The page's `ClipboardItem` global, which the Node typings omit. */
+type PageGlobals = typeof globalThis & {
+  ClipboardItem: new (items: Record<string, Blob>) => unknown;
+};
+
 /**
  * Injects and executes a script in the active tab to copy the image
  * data from a data URL to the clipboard.
@@ -119,10 +129,9 @@ export async function copyImageToClipboard(
         try {
           const response = await fetch(url);
           const blob = await response.blob();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- navigator is a browser global in the injected page function.
-          await (navigator as any).clipboard.write([
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ClipboardItem is a page global missing from the Node typings.
-            new (globalThis as any).ClipboardItem({
+          const page = globalThis as PageGlobals;
+          await (navigator as PageNavigator).clipboard.write([
+            new page.ClipboardItem({
               [blob.type]: blob,
             }),
           ]);
