@@ -1,3 +1,6 @@
+/**
+ * @file Ambient typings that restore the FileReader members the extension relies on.
+ */
 declare global {
   interface FileReader {
     readAsDataURL(blob: Blob): void;

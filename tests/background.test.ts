@@ -1,4 +1,6 @@
-/* global chrome */
+/**
+ * @file Unit tests for the background worker screenshot, clipboard and context menu handlers.
+ */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 const mockChrome = {
@@ -36,14 +38,14 @@ const mockChrome = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test replaces the browser chrome global with a mock
 (globalThis as any).chrome = mockChrome;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test replaces the browser Blob global with a stand-in
 (globalThis as any).Blob = class Blob {
   size: number;
   type: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Blob parts are untyped in the stand-in constructor
   constructor(parts: any[], options?: { type?: string }) {
     this.size = parts.reduce((acc: number, part: unknown) => {
       if (typeof part === 'string') {
@@ -55,7 +57,7 @@ const mockChrome = {
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test replaces the browser FileReader global with a stand-in
 (globalThis as any).FileReader = class FileReader {
   onloadend: (() => void) | null = null;
   onerror: (() => void) | null = null;
@@ -71,7 +73,7 @@ const mockChrome = {
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test replaces the browser URL helpers with mocks
 (globalThis as any).URL = {
   createObjectURL: jest.fn(() => 'blob:test'),
   revokeObjectURL: jest.fn(),
@@ -238,7 +240,7 @@ describe('handleContextMenuClick', () => {
       pageUrl: 'https://example.com',
     };
 
-    await handleContextMenuClick(info, undefined);
+    await handleContextMenuClick(info);
 
     expect(chrome.tabs.captureVisibleTab).not.toHaveBeenCalled();
     expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
@@ -251,7 +253,8 @@ describe('handleContextMenuClick', () => {
       pageUrl: 'https://example.com',
     };
 
-    const tabWithoutId: Tab = { ...tab, id: undefined };
+    const tabWithoutId: Tab = { ...tab };
+    delete tabWithoutId.id;
 
     await handleContextMenuClick(info, tabWithoutId);
 

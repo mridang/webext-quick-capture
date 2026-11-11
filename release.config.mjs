@@ -1,3 +1,6 @@
+/**
+ * @file Semantic-release configuration that versions, packages and publishes the extension.
+ */
 // noinspection JSUnusedGlobalSymbols
 export default {
   plugins: [
