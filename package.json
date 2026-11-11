@@ -29,18 +29,18 @@
     "dist"
   ],
   "scripts": {
-    "prepack": "npm run build",
     "build": "rollup --config=rollup.config.mjs",
-    "test": "jest --verbose --config=jest.config.mjs",
-    "test:watch": "npm run test -- --watch",
-    "test:debug": "jest --verbose --config=jest.config.mjs --detectOpenHandles",
-    "test:coverage": "jest --verbose --config=jest.config.mjs --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "npx eslint .",
-    "lint:fix": "npx eslint . --fix"
+    "lint:fix": "npx eslint . --fix",
+    "prepack": "npm run build",
+    "test": "jest --verbose --config=jest.config.mjs",
+    "test:coverage": "jest --verbose --config=jest.config.mjs --coverage",
+    "test:debug": "jest --verbose --config=jest.config.mjs --detectOpenHandles",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:watch": "npm run test -- --watch"
   },
   "devDependencies": {
     "@eslint/compat": "^2.1.1",

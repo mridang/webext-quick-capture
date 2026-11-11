@@ -13,7 +13,6 @@ let creating: Promise<void> | null; // A global promise to avoid race conditions
 
 /**
  * Sets up an offscreen document if one doesn't already exist.
- *
  * @param path - The path to the offscreen document HTML file.
  */
 async function setupOffscreenDocument(path: string): Promise<void> {
@@ -43,7 +42,6 @@ async function setupOffscreenDocument(path: string): Promise<void> {
 
 /**
  * Plays a sound using an offscreen document.
- *
  * @param src - The path to the audio file.
  */
 async function playSound(src: string): Promise<void> {
@@ -53,7 +51,6 @@ async function playSound(src: string): Promise<void> {
 
 /**
  * Captures the visible tab as a PNG screenshot.
- *
  * @param windowId - The window ID to capture.
  * @returns Result with the data URL or capture error.
  */
@@ -80,7 +77,6 @@ export async function captureScreenshot(
 /**
  * Injects and executes a script in the active tab to copy the image
  * data from a data URL to the clipboard.
- *
  * @param tabId - The ID of the active tab.
  * @param dataUrl - The data URL of the image to copy.
  * @returns Result indicating success or clipboard error.
@@ -103,9 +99,9 @@ export async function copyImageToClipboard(
               [blob.type]: blob,
             }),
           ]);
-        } catch (err) {
-          console.error('Failed to copy image: ', err);
-          throw err;
+        } catch (error) {
+          console.error('Failed to copy image:', error);
+          throw error;
         }
       },
       args: [dataUrl],
@@ -126,7 +122,6 @@ export async function copyImageToClipboard(
 /**
  * Handles context menu click events. Captures the visible tab as a screenshot
  * and copies it to the clipboard.
- *
  * @param info - Context menu click event data.
  * @param tab - The tab where the click occurred.
  */
