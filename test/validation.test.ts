@@ -30,7 +30,7 @@ describe('validateTab', () => {
   });
 
   it('should reject undefined tab', () => {
-    const result = validateTab(undefined);
+    const result = validateTab(undefined as Tab | undefined);
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -61,7 +61,7 @@ describe('validateDataUrl', () => {
   });
 
   it('should reject undefined', () => {
-    const result = validateDataUrl(undefined);
+    const result = validateDataUrl(undefined as string | undefined);
 
     expect(result.success).toBe(false);
     if (!result.success) {
