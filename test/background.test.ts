@@ -91,23 +91,30 @@ const {
 
 type CaptureVisibleTabPromise = (
   windowId: number,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   options: chrome.tabs.CaptureVisibleTabOptions,
 ) => Promise<string>;
 
 type ContextMenusCreateFn = (
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   createProperties: chrome.contextMenus.CreateProperties,
   callback?: () => void,
 ) => string | number;
 
 type ExecuteScriptPromise = (
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   injection: chrome.scripting.ScriptInjection<unknown[], unknown>,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
 ) => Promise<chrome.scripting.InjectionResult[]>;
 
 type GetContextsPromise = (
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   filter: chrome.runtime.ContextFilter,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
 ) => Promise<chrome.runtime.ExtensionContext[]>;
 
 type CreateDocumentPromise = (
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   parameters: chrome.offscreen.CreateParameters,
 ) => Promise<void>;
 
@@ -208,7 +215,6 @@ describe('handleContextMenuClick', () => {
     discarded: false,
     incognito: false,
     autoDiscardable: true,
-    selected: true,
     groupId: -1,
   };
 
