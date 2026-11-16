@@ -195,7 +195,7 @@ describe('handleContextMenuClick', () => {
     captureVisibleTabMock.mockResolvedValue('data:image/png;base64,mock-image');
     executeScriptMock.mockResolvedValue([]);
     getContextsMock.mockResolvedValue([]);
-    createDocumentMock.mockResolvedValue(undefined);
+    createDocumentMock.mockResolvedValue();
   });
 
   const tab: Tab = {
