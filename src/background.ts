@@ -1,7 +1,7 @@
 /**
  * @file Background service worker that captures the visible tab and copies the screenshot to the clipboard.
  */
-import type { ContextMenuInfo, Tab, Result } from './types.js';
+/// <reference types="chrome" />
 import {
   MENU_ID,
   MENU_TITLE,
@@ -10,11 +10,12 @@ import {
   CAPTURE_FORMAT,
 } from './constants.js';
 import { validateTab, validateDataUrl } from './validation.js';
+import type { Result } from './types.js';
 
 /**
- * A shared promise that stops concurrent calls from creating the offscreen document twice.
+ * Shared promises that stop concurrent calls from creating the offscreen document twice.
  */
-let creating: Promise<void> | null;
+const creating = new Map<string, Promise<void>>();
 
 /**
  * Sets up an offscreen document if one doesn't already exist.
@@ -36,16 +37,20 @@ async function setupOffscreenDocument(path: string): Promise<void> {
     return;
   }
 
-  if (creating) {
-    await creating;
+  const pending = creating.get(path);
+  if (pending) {
+    await pending;
   } else {
-    creating = chrome.offscreen.createDocument({
+    const creation = chrome.offscreen.createDocument({
       url: path,
       reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK],
       justification: 'To play a sound when a screenshot is taken',
     });
-    await creating;
-    creating = null;
+    // eslint-disable-next-line functional/immutable-data -- shared registry that dedupes concurrent offscreen document creation
+    creating.set(path, creation);
+    await creation;
+    // eslint-disable-next-line functional/immutable-data -- shared registry that dedupes concurrent offscreen document creation
+    creating.delete(path);
   }
 }
 
@@ -96,12 +101,12 @@ export async function captureScreenshot(
 
 /** The clipboard API of the page's navigator, which the Node typings omit. */
 type PageNavigator = typeof navigator & {
-  clipboard: { write(items: unknown[]): Promise<void> };
+  clipboard: { write(items: object[]): Promise<void> };
 };
 
 /** The page's `ClipboardItem` global, which the Node typings omit. */
 type PageGlobals = typeof globalThis & {
-  ClipboardItem: new (items: Record<string, Blob>) => unknown;
+  ClipboardItem: new (items: Record<string, Blob>) => object;
 };
 
 /**
@@ -168,8 +173,8 @@ export async function copyImageToClipboard(
  * ```
  */
 export async function handleContextMenuClick(
-  info: ContextMenuInfo,
-  tab?: Tab,
+  info: chrome.contextMenus.OnClickData,
+  tab?: chrome.tabs.Tab,
 ): Promise<void> {
   if (info.menuItemId !== MENU_ID) {
     return;

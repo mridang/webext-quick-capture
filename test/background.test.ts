@@ -2,7 +2,6 @@
  * @file Unit tests for the background worker screenshot, clipboard and context menu handlers.
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import type { ContextMenuInfo, Tab } from '../src/types.js';
 
 const mockChrome = {
   runtime: {
@@ -91,30 +90,26 @@ const {
 
 type CaptureVisibleTabPromise = (
   windowId: number,
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
+
   options: chrome.tabs.CaptureVisibleTabOptions,
 ) => Promise<string>;
 
 type ContextMenusCreateFn = (
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   createProperties: chrome.contextMenus.CreateProperties,
   callback?: () => void,
 ) => string | number;
 
 type ExecuteScriptPromise = (
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   injection: chrome.scripting.ScriptInjection<unknown[], unknown>,
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
 ) => Promise<chrome.scripting.InjectionResult[]>;
 
 type GetContextsPromise = (
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   filter: chrome.runtime.ContextFilter,
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
 ) => Promise<chrome.runtime.ExtensionContext[]>;
 
+type SendMessageFn = (message: { type: string }) => Promise<void>;
+
 type CreateDocumentPromise = (
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the chrome namespace in @types/chrome is flagged as Chrome Apps platform, but extensions use it; the preset's allow entry does not cover namespace references
   parameters: chrome.offscreen.CreateParameters,
 ) => Promise<void>;
 
@@ -130,9 +125,8 @@ const executeScriptMock = chrome.scripting
 const getContextsMock = chrome.runtime
   .getContexts as jest.MockedFunction<GetContextsPromise>;
 
-const sendMessageMock = chrome.runtime.sendMessage as jest.MockedFunction<
-  typeof chrome.runtime.sendMessage
->;
+const sendMessageMock = chrome.runtime
+  .sendMessage as unknown as jest.MockedFunction<SendMessageFn>;
 
 const createDocumentMock = chrome.offscreen
   .createDocument as jest.MockedFunction<CreateDocumentPromise>;
@@ -205,7 +199,7 @@ describe('handleContextMenuClick', () => {
     createDocumentMock.mockResolvedValue();
   });
 
-  const tab: Tab = {
+  const tab: chrome.tabs.Tab = {
     id: 1,
     index: 0,
     windowId: 1,
@@ -219,7 +213,7 @@ describe('handleContextMenuClick', () => {
   };
 
   it('should capture screenshot, play sound and copy to clipboard when correct menu item is clicked', async () => {
-    const info: ContextMenuInfo = {
+    const info: chrome.contextMenus.OnClickData = {
       menuItemId: 'capture-screenshot',
       editable: false,
       pageUrl: 'https://example.com',
@@ -227,14 +221,23 @@ describe('handleContextMenuClick', () => {
 
     await handleContextMenuClick(info, tab);
 
-    expect(chrome.tabs.captureVisibleTab).toHaveBeenCalledTimes(1);
-    expect(chrome.scripting.executeScript).toHaveBeenCalledTimes(1);
-    expect(createDocumentMock).toHaveBeenCalledTimes(1);
-    expect(sendMessageMock).toHaveBeenCalledTimes(1);
+    expect(captureVisibleTabMock).toHaveBeenCalledWith(1, { format: 'png' });
+    expect(executeScriptMock.mock.calls).toEqual([
+      [
+        expect.objectContaining({
+          target: { tabId: 1 },
+          args: ['data:image/png;base64,mock-image'],
+        }),
+      ],
+    ]);
+    expect(createDocumentMock.mock.calls).toHaveLength(1);
+    expect(sendMessageMock.mock.calls).toEqual([
+      [expect.objectContaining({ type: 'PLAY_SOUND' })],
+    ]);
   });
 
   it('should not do anything if wrong menu item is clicked', async () => {
-    const info: ContextMenuInfo = {
+    const info: chrome.contextMenus.OnClickData = {
       menuItemId: 'other-menu',
       editable: false,
       pageUrl: 'https://example.com',
@@ -242,12 +245,12 @@ describe('handleContextMenuClick', () => {
 
     await handleContextMenuClick(info, tab);
 
-    expect(chrome.tabs.captureVisibleTab).not.toHaveBeenCalled();
-    expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
+    expect(captureVisibleTabMock.mock.calls).toEqual([]);
+    expect(executeScriptMock.mock.calls).toEqual([]);
   });
 
   it('should not do anything if tab is not available', async () => {
-    const info: ContextMenuInfo = {
+    const info: chrome.contextMenus.OnClickData = {
       menuItemId: 'capture-screenshot',
       editable: false,
       pageUrl: 'https://example.com',
@@ -255,38 +258,38 @@ describe('handleContextMenuClick', () => {
 
     await handleContextMenuClick(info);
 
-    expect(chrome.tabs.captureVisibleTab).not.toHaveBeenCalled();
-    expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
+    expect(captureVisibleTabMock.mock.calls).toEqual([]);
+    expect(executeScriptMock.mock.calls).toEqual([]);
   });
 
   it('should not do anything if tab id is undefined', async () => {
-    const info: ContextMenuInfo = {
+    const info: chrome.contextMenus.OnClickData = {
       menuItemId: 'capture-screenshot',
       editable: false,
       pageUrl: 'https://example.com',
     };
 
-    const tabWithoutId: Tab = { ...tab };
+    const tabWithoutId: chrome.tabs.Tab = { ...tab };
     delete tabWithoutId.id;
 
     await handleContextMenuClick(info, tabWithoutId);
 
-    expect(chrome.tabs.captureVisibleTab).not.toHaveBeenCalled();
-    expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
+    expect(captureVisibleTabMock.mock.calls).toEqual([]);
+    expect(executeScriptMock.mock.calls).toEqual([]);
   });
 
   it('should handle screenshot capture failures gracefully', async () => {
     captureVisibleTabMock.mockRejectedValue(new Error('Capture failed'));
 
-    const info: ContextMenuInfo = {
+    const info: chrome.contextMenus.OnClickData = {
       menuItemId: 'capture-screenshot',
       editable: false,
       pageUrl: 'https://example.com',
     };
 
     await expect(handleContextMenuClick(info, tab)).resolves.not.toThrow();
-    expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
-    expect(sendMessageMock).not.toHaveBeenCalled();
+    expect(executeScriptMock.mock.calls).toEqual([]);
+    expect(sendMessageMock.mock.calls).toEqual([]);
   });
 });
 
