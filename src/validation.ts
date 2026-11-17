@@ -1,11 +1,11 @@
 /**
  * @file Validators that turn raw browser capture inputs into typed results.
  */
-import type { Tab, Result } from './types.js';
+import type { Result } from './types.js';
 
 export const validateTab = (
-  tab: Tab | undefined,
-): Result<Tab & { id: number }> => {
+  tab: chrome.tabs.Tab | undefined,
+): Result<chrome.tabs.Tab & { id: number }> => {
   if (!tab) {
     return {
       success: false,
@@ -26,7 +26,7 @@ export const validateTab = (
     };
   }
 
-  return { success: true, value: tab as Tab & { id: number } };
+  return { success: true, value: { ...tab, id: tab.id } };
 };
 
 export const validateDataUrl = (

@@ -3,9 +3,8 @@
  */
 import { describe, it, expect } from '@jest/globals';
 import { validateTab, validateDataUrl } from '../src/validation.js';
-import type { Tab } from '../src/types.js';
 
-const baseTab: Tab = {
+const baseTab: chrome.tabs.Tab = {
   id: 1,
   index: 0,
   windowId: 1,
@@ -29,7 +28,7 @@ describe('validateTab', () => {
   });
 
   it('should reject undefined tab', () => {
-    const result = validateTab(undefined as Tab | undefined);
+    const result = validateTab(undefined as chrome.tabs.Tab | undefined);
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -38,7 +37,7 @@ describe('validateTab', () => {
   });
 
   it('should reject tab without id', () => {
-    const tabWithoutId: Tab = { ...baseTab };
+    const tabWithoutId: chrome.tabs.Tab = { ...baseTab };
     delete tabWithoutId.id;
     const result = validateTab(tabWithoutId);
 
