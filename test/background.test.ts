@@ -3,19 +3,56 @@
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
+type CaptureVisibleTabPromise = (
+  windowId: number,
+
+  options: chrome.tabs.CaptureVisibleTabOptions,
+) => Promise<string>;
+
+type ContextMenusCreateFn = (
+  createProperties: chrome.contextMenus.CreateProperties,
+  callback?: () => void,
+) => string | number;
+
+type ExecuteScriptPromise = (
+  injection: chrome.scripting.ScriptInjection<unknown[], unknown>,
+) => Promise<chrome.scripting.InjectionResult[]>;
+
+type GetContextsPromise = (
+  filter: chrome.runtime.ContextFilter,
+) => Promise<chrome.runtime.ExtensionContext[]>;
+
+type SendMessageFn = (message: { type: string }) => Promise<void>;
+
+type CreateDocumentPromise = (
+  parameters: chrome.offscreen.CreateParameters,
+) => Promise<void>;
+
+const captureVisibleTabMock = jest.fn<CaptureVisibleTabPromise>();
+
+const contextMenusCreateMock = jest.fn<ContextMenusCreateFn>();
+
+const executeScriptMock = jest.fn<ExecuteScriptPromise>();
+
+const getContextsMock = jest.fn<GetContextsPromise>();
+
+const sendMessageMock = jest.fn<SendMessageFn>();
+
+const createDocumentMock = jest.fn<CreateDocumentPromise>();
+
 const mockChrome = {
   runtime: {
     onInstalled: {
       addListener: jest.fn(),
     },
-    getContexts: jest.fn(),
-    sendMessage: jest.fn(),
+    getContexts: getContextsMock,
+    sendMessage: sendMessageMock,
     ContextType: {
       OFFSCREEN_DOCUMENT: 'OFFSCREEN_DOCUMENT',
     },
   },
   contextMenus: {
-    create: jest.fn(),
+    create: contextMenusCreateMock,
     onClicked: {
       addListener: jest.fn(),
     },
@@ -24,13 +61,13 @@ const mockChrome = {
     download: jest.fn(),
   },
   tabs: {
-    captureVisibleTab: jest.fn(),
+    captureVisibleTab: captureVisibleTabMock,
   },
   scripting: {
-    executeScript: jest.fn(),
+    executeScript: executeScriptMock,
   },
   offscreen: {
-    createDocument: jest.fn(),
+    createDocument: createDocumentMock,
     hasDocument: jest.fn(),
     Reason: {
       AUDIO_PLAYBACK: 'AUDIO_PLAYBACK',
@@ -87,49 +124,6 @@ const {
   handleContextMenuClick,
   initializeContextMenu,
 } = await import('../src/background.js');
-
-type CaptureVisibleTabPromise = (
-  windowId: number,
-
-  options: chrome.tabs.CaptureVisibleTabOptions,
-) => Promise<string>;
-
-type ContextMenusCreateFn = (
-  createProperties: chrome.contextMenus.CreateProperties,
-  callback?: () => void,
-) => string | number;
-
-type ExecuteScriptPromise = (
-  injection: chrome.scripting.ScriptInjection<unknown[], unknown>,
-) => Promise<chrome.scripting.InjectionResult[]>;
-
-type GetContextsPromise = (
-  filter: chrome.runtime.ContextFilter,
-) => Promise<chrome.runtime.ExtensionContext[]>;
-
-type SendMessageFn = (message: { type: string }) => Promise<void>;
-
-type CreateDocumentPromise = (
-  parameters: chrome.offscreen.CreateParameters,
-) => Promise<void>;
-
-const captureVisibleTabMock = chrome.tabs
-  .captureVisibleTab as unknown as jest.MockedFunction<CaptureVisibleTabPromise>;
-
-const contextMenusCreateMock = chrome.contextMenus
-  .create as unknown as jest.MockedFunction<ContextMenusCreateFn>;
-
-const executeScriptMock = chrome.scripting
-  .executeScript as unknown as jest.MockedFunction<ExecuteScriptPromise>;
-
-const getContextsMock = chrome.runtime
-  .getContexts as jest.MockedFunction<GetContextsPromise>;
-
-const sendMessageMock = chrome.runtime
-  .sendMessage as unknown as jest.MockedFunction<SendMessageFn>;
-
-const createDocumentMock = chrome.offscreen
-  .createDocument as jest.MockedFunction<CreateDocumentPromise>;
 
 describe('captureScreenshot', () => {
   beforeEach(() => {
